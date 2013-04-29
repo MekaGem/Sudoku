@@ -23,25 +23,16 @@ public class SudokuPanel extends JPanel implements MouseListener {
 		addMouseListener(this);
 	}
 
-	private void check() {
-		if (map.getEmptyCells().size() != 0) {
-			return;
-		}
-		for (int row = 0; row < map.getSize(); ++row) {
-			for (int column = 0; column < map.getSize(); ++column) {
-				if (!map.isCorrect(row, column)) {
-					return;
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		if (!isChoosing && !finished && e.getButton() == MouseEvent.BUTTON3) {
+			if (isIntoSudoku(e.getPoint())) {
+				Point cell = getSudokuPosition(e.getPoint());
+				if (!map.isLocked(cell.y, cell.x)) {
+					map.set(cell.y, cell.x, null);
 				}
 			}
 		}
-
-		gamePanel.stopGame();
-		finished = true;
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		repaint();
 	}
 
 	@Override
@@ -71,11 +62,15 @@ public class SudokuPanel extends JPanel implements MouseListener {
 							cell.y >= row && cell.y < row + map.getBoxHeight()) {
 						int number = (cell.y - row) * map.getBoxWidth() + (cell.x - column) + 1;
 						map.set(toChoose.y, toChoose.x, number);
-						check();
+
+						if (map.isFinished()) {
+							gamePanel.stopGame();
+							finished = true;
+						}
 					}
 				}
 				isChoosing = false;
-			} else if (e.getButton() == MouseEvent.BUTTON2) {
+			} else if (e.getButton() == MouseEvent.BUTTON3) {
 				isChoosing = false;
 			}
 		}
@@ -128,12 +123,18 @@ public class SudokuPanel extends JPanel implements MouseListener {
 			return;
 		}
 
-		if (!map.isCorrect(row, column)) {
-			g2.setColor(Color.RED);
-		} else if (map.isLocked(row, column)) {
-			g2.setColor(Color.BLACK);
+		if (map.isLocked(row, column)) {
+			if (map.isCorrect(row, column)) {
+				g2.setColor(Color.BLACK);
+			} else {
+				g2.setColor(Color.ORANGE);
+			}
 		} else {
-			g2.setColor(Color.GRAY);
+			if (map.isCorrect(row, column)) {
+				g2.setColor(Color.GRAY);
+			} else {
+				g2.setColor(Color.RED);
+			}
 		}
 
 		int cx = sx + (size * (2 * column + 1)) / (2 * map.getSize());
@@ -142,7 +143,7 @@ public class SudokuPanel extends JPanel implements MouseListener {
 		int textWidth = g2.getFontMetrics().stringWidth(text);
 		int textHeight = g2.getFontMetrics().getHeight();
 
-		g2.drawString(text, cx - textWidth / 2, cy + textHeight / 3);
+		g2.drawString(text, cx - textWidth / 2, cy + textHeight / 2);
 	}
 
 	private void drawChoosingNumbers(Graphics2D g2, int firstRow, int firstColumn) {
@@ -157,7 +158,7 @@ public class SudokuPanel extends JPanel implements MouseListener {
 				int textWidth = g2.getFontMetrics().stringWidth(text);
 				int textHeight = g2.getFontMetrics().getHeight();
 
-				g2.drawString(text, cx - textWidth / 2, cy + textHeight / 3);
+				g2.drawString(text, cx - textWidth / 2, cy + textHeight / 2);
 
 				number++;
 			}
@@ -166,7 +167,6 @@ public class SudokuPanel extends JPanel implements MouseListener {
 
 	private void drawGrid(Graphics2D g2) {
 		g2.setColor(Color.BLACK);
-		g2.drawRect(sx, sy, size, size);
 
 		Point mouse = getMousePosition();
 		if (!isChoosing && isIntoSudoku(mouse)) {
@@ -184,7 +184,7 @@ public class SudokuPanel extends JPanel implements MouseListener {
 		}
 
 		g2.setColor(Color.BLACK);
-		for (int row = 1; row < map.getSize(); ++row) {
+		for (int row = 0; row <= map.getSize(); ++row) {
 			if (row % map.getBoxHeight() == 0) {
 				g2.setStroke(new BasicStroke(3));
 			} else {
@@ -194,7 +194,7 @@ public class SudokuPanel extends JPanel implements MouseListener {
 			g2.drawLine(sx, sy + y, sx + size, sy + y);
 		}
 
-		for (int column = 1; column < map.getSize(); ++column) {
+		for (int column = 0; column <= map.getSize(); ++column) {
 			if (column % map.getBoxWidth() == 0) {
 				g2.setStroke(new BasicStroke(3));
 			} else {

@@ -61,7 +61,7 @@ public class OptionsPanel extends JPanel {
 
 		constraints.gridx = 1;
 		constraints.gridy = 2;
-		densitySlider = new JSlider(0, 1000);
+		densitySlider = new JSlider(0, 700);
 		add(densitySlider, constraints);
 
 		/**

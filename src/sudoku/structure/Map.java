@@ -158,6 +158,21 @@ public class Map {
 		}
 	}
 
+	public boolean isFinished() {
+		if (getEmptyCells().size() != 0) {
+			return false;
+		}
+		for (int row = 0; row < getSize(); ++row) {
+			for (int column = 0; column < getSize(); ++column) {
+				if (!isCorrect(row, column)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	public boolean isLocked(int row, int column) {
 		return locked.get(row * getSize() + column);
 	}
